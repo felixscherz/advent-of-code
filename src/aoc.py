@@ -1,19 +1,18 @@
-import requests
+import argparse
 import os
-import inspect
 from pathlib import Path
+
+import requests
 
 BASE_URL = "https://adventofcode.com"
 AOC_COOKIE_ENV_NAME = "AOC_COOKIE"
 
 
-def get_input(year: int, day: int, session: str | None = None) -> list[str]:
+def get_input(year: int | None = None, day: int | None = None, session: str | None = None) -> list[str]:
+    if not year or not day:
+        year, day = determine_year_day()
 
-    # cache next to calling file
-    caller_filename = inspect.stack()[1].filename
-    caller_dir = Path(caller_filename).parent
-    cache_key = caller_dir / f"input_{year}_{day}.txt"
-
+    cache_key = "input.txt"
     try:
         with open(cache_key) as handle:
             return handle.read().splitlines()
@@ -30,23 +29,40 @@ def get_input(year: int, day: int, session: str | None = None) -> list[str]:
 
     return response.text.splitlines()
 
-def determine_input() -> list[str]:
-    # organized into years/<year>/<day>/<parts>.py
-    caller_filename = inspect.stack()[1].filename
-    parents = iter(Path(caller_filename).parents)
-    day_s = next(parents).stem
-    year_s = next(parents).stem
 
-    day = int(day_s[len("day"):])
+def determine_year_day() -> tuple[int, int]:
+    cwd = Path.cwd()
+    day_s = cwd.stem
+    if not day_s.startswith("day"):
+        raise AssertionError(f"Unexpected working directory: {cwd}")
+    year_s = cwd.parent.stem
     year = int(year_s)
-    print(day, year)
+    day = int(day_s[len("day") :])
+    return year, day
 
-    return get_input(year=year, day=day)
 
 def submit(year: int, day: int, part: int, answer: str, session: str | None = None) -> bool:
     if not session:
         session = os.environ[AOC_COOKIE_ENV_NAME]
-    response = requests.post(f"{BASE_URL}/{year}/day/{day}/answer", headers={"Cookie": session}, data={"level": part, "answer": answer})
+    response = requests.post(
+        f"{BASE_URL}/{year}/day/{day}/answer", headers={"Cookie": session}, data={"level": part, "answer": answer}
+    )
     breakpoint()
     assert response.ok
 
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(title="aoc", dest="command", required=True)
+    subparsers.add_parser("load")
+    return parser.parse_args()
+
+
+def main():
+    options = parse_args()
+    match options.command:
+        case "load":
+            get_input()
+        case _:
+            ...
+    raise SystemExit(0)

@@ -6,13 +6,5 @@ dependencies = [
     "pytest"
 ]
 
-[tool.pytest.ini_options]
-testpaths = [
-    "tests",
-    "years"
-]
-python_files = [
-    "test_*.py",
-    "part1.py",
-    "part2.py"
-]
+[project.scripts]
+aoc = "aoc:main"
