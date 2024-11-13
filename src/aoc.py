@@ -1,7 +1,7 @@
 import argparse
 import os
-import sys
 import re
+import sys
 from pathlib import Path
 
 import requests
@@ -11,13 +11,13 @@ AOC_COOKIE_ENV_NAME = "AOC_COOKIE"
 INPUT_FILENAME = "input.txt"
 
 
-def get_input(year: int | None = None, day: int | None = None, session: str | None = None) -> list[str]:
+def get_input(year: int | None = None, day: int | None = None, session: str | None = None) -> int:
     if not year or not day:
         year, day = determine_year_day()
 
     try:
         with open(INPUT_FILENAME) as handle:
-            return handle.read().splitlines()
+            return 0
     except FileNotFoundError:
         pass
 
@@ -29,7 +29,7 @@ def get_input(year: int | None = None, day: int | None = None, session: str | No
     with open(INPUT_FILENAME, "w") as handle:
         handle.write(response.text)
 
-    return response.text.splitlines()
+    return 0
 
 
 def determine_year_day() -> tuple[int, int]:
@@ -48,7 +48,7 @@ WRONG = re.compile(r"That's not the right answer.*?\.")
 RIGHT = "That's the right answer!"
 ALREADY_DONE = re.compile(r"You don't seem to be solving.*\?")
 
-def submit(year: int, day: int, part: int, answer: int, session: str | None = None) -> bool:
+def submit(year: int, day: int, part: int, answer: int, session: str | None = None) -> int:
     if not year or not day:
         year, day = determine_year_day()
 
@@ -60,14 +60,15 @@ def submit(year: int, day: int, part: int, answer: int, session: str | None = No
     for error_regex in (WRONG, TOO_QUICK, ALREADY_DONE):
         error_match = error_regex.search(response.text)
         if error_match:
-            print(error_match[0])
-            return False
+            print(f"\033[31m{error_match[0]}\033[0m")
+            return 1
     
     if RIGHT in response.text:
-        return True
+        print("\033[32mAnswer was correct!\033[0m")
+        return 0
     else:
         print(response.text)
-        return False
+        return 1
 
 
 def parse_args() -> argparse.Namespace:
@@ -84,13 +85,11 @@ def main():
     options = parse_args()
     match options.command:
         case "load":
-            get_input()
+            raise SystemExit(get_input())
         case "submit":
             year, day = determine_year_day()
             answer = int(sys.stdin.read())
             success = submit(year=year, day=day, part=options.part, answer=answer)
-            if success:
-                print("\033[32mAnswer was correct!\033[0m")
+            raise SystemExit(success)
         case _:
             ...
-    raise SystemExit(0)
