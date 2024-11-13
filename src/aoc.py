@@ -8,15 +8,15 @@ import requests
 
 BASE_URL = "https://adventofcode.com"
 AOC_COOKIE_ENV_NAME = "AOC_COOKIE"
+INPUT_FILENAME = "input.txt"
 
 
 def get_input(year: int | None = None, day: int | None = None, session: str | None = None) -> list[str]:
     if not year or not day:
         year, day = determine_year_day()
 
-    cache_key = "input.txt"
     try:
-        with open(cache_key) as handle:
+        with open(INPUT_FILENAME) as handle:
             return handle.read().splitlines()
     except FileNotFoundError:
         pass
@@ -26,7 +26,7 @@ def get_input(year: int | None = None, day: int | None = None, session: str | No
     response = requests.get(f"{BASE_URL}/{year}/day/{day}/input", headers={"Cookie": session})
     assert response.ok
 
-    with open(cache_key, "w") as handle:
+    with open(INPUT_FILENAME, "w") as handle:
         handle.write(response.text)
 
     return response.text.splitlines()
