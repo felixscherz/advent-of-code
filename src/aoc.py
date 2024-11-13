@@ -90,7 +90,7 @@ def main():
             answer = int(sys.stdin.read())
             success = submit(year=year, day=day, part=options.part, answer=answer)
             if success:
-                print("Answer was correct!")
+                print("\033[32mAnswer was correct!\033[0m")
         case _:
             ...
     raise SystemExit(0)
