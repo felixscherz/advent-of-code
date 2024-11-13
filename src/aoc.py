@@ -88,7 +88,9 @@ def main():
         case "submit":
             year, day = determine_year_day()
             answer = int(sys.stdin.read())
-            submit(year=year, day=day, part=options.part, answer=answer)
+            success = submit(year=year, day=day, part=options.part, answer=answer)
+            if success:
+                print("Answer was correct!")
         case _:
             ...
     raise SystemExit(0)
