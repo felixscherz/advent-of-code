@@ -2,11 +2,12 @@ from collections import Counter
 def valid_password(line: str):
     min_max, letter, password = line.split(" ")
     min_s, max_s = min_max.split("-")
-    min = int(min_s)
-    max = int(max_s)
+    a = int(min_s)
+    b = int(max_s)
     letter = letter.replace(":", "")
-    counter = Counter(password)
-    return min <= counter[letter] and counter[letter] <= max
+    a_contains = password[a-1] == letter
+    b_contains = password[b-1] == letter
+    return a_contains + b_contains == 1
 
 
 
@@ -23,4 +24,5 @@ def main():
 
 
 main()
+
 
