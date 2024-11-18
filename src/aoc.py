@@ -77,6 +77,7 @@ def parse_args() -> argparse.Namespace:
     subparsers.add_parser("load")
     submit_parser = subparsers.add_parser("submit")
     submit_parser.add_argument("--part", type=int, required=True)
+    subparsers.add_parser("open")
 
     return parser.parse_args()
 
@@ -91,5 +92,11 @@ def main():
             answer = int(sys.stdin.read())
             success = submit(year=year, day=day, part=options.part, answer=answer)
             raise SystemExit(success)
+        case "open":
+            import subprocess
+            year, day = determine_year_day()
+            subprocess.run(
+                ["open", f"https://adventofcode.com/{year}/day/{day}"]
+            )
         case _:
             ...
