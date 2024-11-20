@@ -38,32 +38,58 @@ fn main() {
     let reader = BufReader::new(file);
     let lines: Vec<String> = reader.lines().map(|x| x.unwrap()).collect();
 
-    let mut visisted: HashSet<i32> = HashSet::new();
-    let mut acc = 0;
-    let mut pos: i32 = 0;
-
+    let mut exchanged: HashSet<i32> = HashSet::new();
     loop {
-        let ins: Op = lines
-            .get(TryInto::<usize>::try_into(pos).unwrap())
-            .unwrap()
-            .parse()
-            .unwrap();
-        if visisted.contains(&pos) {
-            break
-        }
-        visisted.insert(pos);
-        match ins {
-            Op::Acc(num) => {
-                pos += 1;
-                acc += num;
+        let mut visisted: HashSet<i32> = HashSet::new();
+        let mut acc = 0;
+        let mut pos: i32 = 0;
+        let last_pos = lines.len();
+        let mut changed = false;
+        loop {
+            let mut ins: Op = lines
+                .get(TryInto::<usize>::try_into(pos).unwrap())
+                .unwrap()
+                .parse()
+                .unwrap();
+            if !changed {
+                match ins {
+                    Op::Acc(_) => (),
+                    Op::Jmp(num) => {
+                        if !exchanged.contains(&pos) {
+                            exchanged.insert(pos);
+                            changed = true;
+                            ins = Op::Nop(num)
+                        }
+                    }
+                    Op::Nop(num) => {
+                        if !exchanged.contains(&pos) {
+                            exchanged.insert(pos);
+                            changed = true;
+                            ins = Op::Jmp(num)
+                        }
+                    }
+                }
             }
-            Op::Jmp(num) => pos += num,
-            Op::Nop(num) => {
-                pos += 1;
+            if visisted.contains(&pos) {
+                break;
+            }
+            visisted.insert(pos);
+            match ins {
+                Op::Acc(num) => {
+                    pos += 1;
+                    acc += num;
+                }
+                Op::Jmp(num) => pos += num,
+                Op::Nop(num) => {
+                    pos += 1;
+                }
+            }
+            if pos == last_pos.try_into().unwrap() {
+                println!("{}", acc);
+                return;
             }
         }
     }
-    println!("{}", acc)
 }
 
 mod test {
@@ -75,5 +101,3 @@ mod test {
         dbg!(op);
     }
 }
-
-
