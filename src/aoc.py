@@ -3,6 +3,7 @@ import os
 import re
 import sys
 from pathlib import Path
+import webbrowser
 
 import requests
 
@@ -93,10 +94,7 @@ def main():
             success = submit(year=year, day=day, part=options.part, answer=answer)
             raise SystemExit(success)
         case "open":
-            import subprocess
             year, day = determine_year_day()
-            subprocess.run(
-                ["open", f"https://adventofcode.com/{year}/day/{day}"]
-            )
+            webbrowser.open(f"https://adventofcode.com/{year}/day/{day}")
         case _:
             ...
