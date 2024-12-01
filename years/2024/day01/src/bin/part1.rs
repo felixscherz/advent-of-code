@@ -13,7 +13,7 @@ fn main() {
         if let Some(left_num_s) = num.next() {
             left.push(left_num_s.parse().unwrap());
         } else {
-            break
+            break;
         }
         let right_num: i32 = num.next().unwrap().parse().unwrap();
         right.push(right_num);
@@ -22,8 +22,10 @@ fn main() {
     left.sort();
     right.sort();
 
-    let distance: i32 = left.iter().zip(right.iter()).map(|(x,y)| (x-y).abs()).sum();
+    let distance: i32 = left
+        .iter()
+        .zip(right.iter())
+        .map(|(x, y)| (x - y).abs())
+        .sum();
     println!("{}", distance);
 }
-
-
