@@ -16,6 +16,12 @@ fn compatible(joltage: u32, adapters: &Vec<u32>) -> Vec<u32> {
         .collect()
 }
 
+// for every compatible charger, a new branch is created
+// start at the outlet (0 joltage) and determine the possible adapters from this point
+// for every adapter returned, ... do I need a linked list thingy here?
+// it's probably not required to know what the actual sequences are
+// is there a way to track the number without storing the actual sequences?
+
 fn main() {
     let binding = fs::read_to_string("input.txt").unwrap();
 
@@ -26,7 +32,6 @@ fn main() {
     let mut differences: HashMap<u32, u32> = HashMap::new();
 
     for i in 0..(adapters.len() - 1) {
-        dbg!(compatible(*adapters.get(i).unwrap(), &adapters));
         let diff = adapters.get(i + 1).unwrap() - adapters.get(i).unwrap();
         if let None = differences.get(&diff) {
             differences.insert(diff, 0);
