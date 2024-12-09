@@ -47,7 +47,6 @@ fn main() {
                     (0..size)
                         .map(|_| {
                             let block = Block::FULL(file_id);
-                            // file.add(&block);
                             block
                         })
                         .collect::<Vec<_>>()
@@ -84,7 +83,6 @@ fn main() {
                         handle.add();
                     }
                 }
-                files.get_mut(&file_id).unwrap().add();
             }
             Block::FREE => match free_space_start {
                 None => free_space_start = Some(position),
@@ -102,29 +100,27 @@ fn main() {
     // 4. if it does -> move the entire file there
     // 5. repeat
     //
+    dbg!(&files);
+
+    let mut counter = 0;
 
     loop {
         // first find the last file on the disk
-
-        for block in &blocks {
-            match block {
-                Block::FREE => eprint!("."),
-                Block::FULL(id) => eprint!("{}", id),
-            }
+        if counter % 500 == 0 {
+            eprintln!("{} files left to check", files.len());
         }
-        eprintln!("");
+
 
         let file_id = {
             let last_full_block_pos = blocks.len()
                 - 1
-                - blocks
-                    .iter()
-                    .rev()
-                    .position(|x| match x {
-                        Block::FREE => false,
-                        Block::FULL(id) => files.contains_key(id),
-                    })
-                    .unwrap();
+                - match blocks.iter().rev().position(|x| match x {
+                    Block::FREE => false,
+                    Block::FULL(id) => files.contains_key(id),
+                }) {
+                    Some(pos) => pos,
+                    None => break,
+                };
 
             let last_full_block = &blocks[last_full_block_pos];
             match last_full_block {
@@ -134,7 +130,6 @@ fn main() {
             .clone()
         };
 
-        dbg!(&file_id);
 
         let file = match files.get(&file_id) {
             None => break, // no more files to move
@@ -145,10 +140,7 @@ fn main() {
 
         for i in 0..free_space.len() {
             let space = free_space.get(i).unwrap();
-            eprintln!("checking free space {}, {}", space.0, space.1);
-            eprintln!("file is {}", file.len());
             if (space.1 - space.0) >= file.len() {
-                eprintln!("big enough");
                 // file can fit, move blocks
 
                 let mut start = space.0;
