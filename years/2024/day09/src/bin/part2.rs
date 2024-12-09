@@ -111,6 +111,8 @@ fn main() {
         }
 
 
+
+
         let file_id = {
             let last_full_block_pos = blocks.len()
                 - 1
@@ -140,7 +142,7 @@ fn main() {
 
         for i in 0..free_space.len() {
             let space = free_space.get(i).unwrap();
-            if (space.1 - space.0) >= file.len() {
+            if (space.1 - space.0) >= file.len() && space.0 < file.start  {
                 // file can fit, move blocks
 
                 let mut start = space.0;
