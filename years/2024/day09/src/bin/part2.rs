@@ -100,15 +100,15 @@ fn main() {
     // 4. if it does -> move the entire file there
     // 5. repeat
     //
-    dbg!(&files);
+    // dbg!(&files);
 
     let mut counter = 0;
 
     loop {
         // first find the last file on the disk
-        if counter % 500 == 0 {
-            eprintln!("{} files left to check", files.len());
-        }
+        // if counter % 500 == 0 {
+        //     eprintln!("{} files left to check", files.len());
+        // }
 
 
 
@@ -169,13 +169,13 @@ fn main() {
         files.remove(&file_id);
     }
 
-    for block in &blocks {
-        match block {
-            Block::FREE => eprint!("."),
-            Block::FULL(id) => eprint!("{}", id),
-        }
-    }
-    eprintln!("");
+    // for block in &blocks {
+    //     match block {
+    //         Block::FREE => eprint!("."),
+    //         Block::FULL(id) => eprint!("{}", id),
+    //     }
+    // }
+    // eprintln!("");
 
     let checksum: usize = blocks
         .iter()
