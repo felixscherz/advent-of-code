@@ -55,23 +55,34 @@ fn main() {
         let entry = index.entry(stone.number).or_insert(0);
         *entry = *entry + 1;
     }
+    dbg!(&stones);
+    dbg!(&index);
     // keep an index that keeps track how many stones were created with that number
 
-    for i in 0..6 {
+    for i in 0..75 {
         // for key in index create a stone, create children, add those with multiplier to index and
         // remove old stone
 
-        let stones: Vec<u64> = index.keys().cloned().collect();
+        let current_index = index.clone();
+        let stones: Vec<u64> = current_index.keys().cloned().collect();
         for number in stones {
+            // eprintln!("blinking stone with number {}", &number);
             let stone = Stone::new(number);
-            let count = &index.get(&number).unwrap().clone();
+            let count = &current_index.get(&number).unwrap().clone();
+            // eprintln!("{} stones of that number", count);
             let children = stone.blink();
-            index.remove(&number);
+            // index.remove(&number); // what if a previous step created stones of that number
+            let entry = index.get_mut(&number).unwrap();
+            *entry = *entry - *count;
+
             for child in children {
+                // eprintln!("created {}", &child.number);
                 let entry = index.entry(child.number).or_insert(0);
                 *entry = *entry + *count;
             }
         }
+        // eprintln!("blinked {} times", i+1);
+        // dbg!(&index);
     }
 
     println!("{}", index.values().sum::<u64>());
