@@ -85,13 +85,13 @@ impl Garden {
             .count()
     }
 
-    fn sides(&self, plot: &HashSet<(usize, usize)>) -> HashSet<(i32, i32)> {
+    fn sides(&self, plot: &HashSet<(usize, usize)>) -> HashSet<(i32, i32, (i32,i32))> {
         let plant_type = self.get(plot.iter().next().unwrap()).unwrap();
         plot.iter()
             .flat_map(|start| {
                 DIRECTIONS
                     .iter()
-                    .map(|x| ((start.0 as i32 + x.0), (start.1 as i32 + x.1))) // make the step
+                    .map(|x| ((start.0 as i32 + x.0), (start.1 as i32 + x.1), *x)) // make the step
                     .filter(|x| {
                         // if the other is a plant of the same type, there is no side
                         if let Some(other) = self.get(&(x.0 as usize, x.1 as usize)) {
@@ -113,8 +113,8 @@ impl Garden {
         false
     }
 
-    fn combine_sides(&self, sides: &HashSet<(i32, i32)>) -> usize {
-        let mut assigned: HashSet<(i32, i32)> = HashSet::new();
+    fn combine_sides(&self, sides: &HashSet<(i32, i32, (i32,i32))>) -> usize {
+        let mut assigned: HashSet<(i32, i32, (i32,i32))> = HashSet::new();
 
         let mut sections: Vec<HashSet<(i32, i32)>> = vec![];
 
@@ -127,43 +127,46 @@ impl Garden {
 
             // section will contain all elements that belong to a side
             let mut section: HashSet<(i32, i32)> = HashSet::new();
-            section.insert(*side);
+            section.insert((side.0, side.1));
 
             // used for bfs
-            let mut current: HashSet<(i32, i32)> = HashSet::new();
+            let mut current: HashSet<(i32, i32, (i32,i32))> = HashSet::new();
             current.insert(*side);
             // find other sides that belong to that one
             loop {
-                let mut new: HashSet<(i32, i32)> = HashSet::new();
+                let mut new: HashSet<(i32, i32, (i32,i32))> = HashSet::new();
 
-                dbg!(&current);
                 // for every element in the current section we are checking the neighbours
                 for pos in &current {
                     // go through all side elements and find those that are reachable
                     for other in sides {
                         if pos == other {
-                            eprintln!("continue because same");
+                            // eprintln!("continue because same");
                             continue;
                         }
 
-                        if !self.reachable(pos, other) {
-                            eprintln!("continue because {}, {}, not reachable", other.0, other.1);
+                        if !self.reachable(&(pos.0, pos.1), &(other.0, other.1)) {
+                            // eprintln!("continue because {}, {}, not reachable", other.0, other.1);
+                            continue;
+                        }
+
+                        if pos.2 != other.2 {
                             continue;
                         }
 
                         if assigned.contains(other) {
-                            eprintln!("continue because already assigned");
+                            // eprintln!("continue because already assigned");
                             continue;
                         }
-                        eprintln!("found {}, {}", other.0, other.1);
+                        // eprintln!("found {}, {}", other.0, other.1);
 
                         new.insert(*other);
-                        section.insert(*other);
+                        section.insert((other.0, other.1));
                         assigned.insert(*other);
                     }
                 }
                 if new.is_empty() {
-                    dbg!("no new");
+                    // dbg!("no new");
                     break;
                 }
                 current = new;
@@ -240,18 +243,18 @@ fn main() {
     eprintln!("found {} plots", map.plots.len());
     let mut cost = 0;
     for plot in &map.plots {
-        eprintln!(
-            "plot {} has {} sides",
-            map.get(plot.iter().next().unwrap()).unwrap(),
-            map.combine_sides(&map.sides(&plot))
-        );
+        // eprintln!(
+        //     "plot {} has {} sides",
+        //     map.get(plot.iter().next().unwrap()).unwrap(),
+        //     map.combine_sides(&map.sides(&plot))
+        // );
         cost = cost + map.combine_sides(&map.sides(&plot)) * plot.len();
     }
     // let total_cost: usize = map.plots.iter().map(|x| map.cost(x)).sum();
-    dbg!(map.reachable(&(1,1), &(1,2)));
+    // dbg!(map.reachable(&(1,1), &(1,2)));
 
     for plot in &map.plots {
-        println!(
+        eprintln!(
             "plot {} has {} sides",
             map.get(plot.iter().next().unwrap()).unwrap(),
             map.combine_sides(&map.sides(&plot))
