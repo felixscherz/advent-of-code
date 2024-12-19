@@ -1,8 +1,6 @@
 use std::{
-    cell::RefCell,
-    collections::{HashSet, VecDeque},
     io::{stdin, Read},
-    rc::Rc,
+    str::FromStr,
 };
 
 #[derive(Debug)]
@@ -17,10 +15,38 @@ impl Move {
     }
 }
 
+#[derive(Debug)]
+struct ParseMoveError;
+
+impl FromStr for Move {
+    type Err = ParseMoveError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut parts = s.split(":").nth(1).unwrap().split(",");
+        let x: i32 = parts.next().unwrap().replace(" X+", "").parse().unwrap();
+        let y: i32 = parts.next().unwrap().replace(" Y+", "").parse().unwrap();
+        Ok(Self::new(x, y))
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 struct Point {
     x: i32,
     y: i32,
+}
+
+#[derive(Debug)]
+struct ParsePointError;
+
+impl FromStr for Point {
+    type Err = ParsePointError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut parts = s.split(":").nth(1).unwrap().split(",");
+        let x: i32 = parts.next().unwrap().replace(" X=", "").parse().unwrap();
+        let y: i32 = parts.next().unwrap().replace(" Y=", "").parse().unwrap();
+        Ok(Self { x, y })
+    }
 }
 
 impl Point {
@@ -39,8 +65,6 @@ impl Point {
             b = 0f32;
         }
         let a: f32 = (target.x as f32 - b * move_b.x as f32) / move_a.x as f32;
-        dbg!(a);
-        dbg!(b);
         (a as f32).fract() == 0f32 && (b as f32).fract() == 0f32 && a >= 0f32 && b >= 0f32
     }
 
@@ -63,14 +87,17 @@ impl Machine {
     }
 
     fn cost(&self) -> Option<u32> {
-        if !self.winnable() {
-            return None;
-        }
+        // if !self.winnable() {
+        //     return None;
+        // }
 
         let mut costs: Vec<u32> = vec![];
         let mut a_coeff: i32 = 0;
         loop {
             // if a_coeff is outside the cirlce (with b_coeff = 0), break;
+            if a_coeff > 100 {
+                break;
+            }
             if a_coeff.pow(2) * (self.a.x.pow(2) + self.a.y.pow(2))
                 > self.prize.x.pow(2) + self.prize.y.pow(2)
             {
@@ -79,6 +106,9 @@ impl Machine {
             let mut b_coeff: i32 = 0;
             loop {
                 // if coeffs are out of the circle, break inner loop
+                if b_coeff > 100 {
+                    break;
+                }
                 if (a_coeff * self.a.x + b_coeff * self.b.x).pow(2)
                     + (a_coeff * self.a.y + b_coeff * self.b.y).pow(2)
                     > self.prize.x.pow(2) + self.prize.y.pow(2)
@@ -92,7 +122,6 @@ impl Machine {
                 {
                     costs.push(3 * a_coeff as u32 + b_coeff as u32)
                 }
-
 
                 b_coeff = b_coeff + 1;
             }
@@ -108,21 +137,29 @@ fn main() {
     let mut input = String::new();
     stdin().read_to_string(&mut input).unwrap();
 
-    //
-    // Button A: X+94, Y+34
-    // Button B: X+22, Y+67
-    // Prize: X=8400, Y=5400
+    let mut lines = input.lines();
+    let mut machines: Vec<Machine> = vec![];
 
-    let machine = Machine {
-        a: Move::new(94, 34),
-        b: Move::new(22, 67),
-        prize: Point::new(8400, 5400),
-    };
+    loop {
 
-    println!("{}", machine.cost().unwrap());
-    // algorithm will be to add nodes all around the starting location at every point reachable
-    // until that point cloud contains the prize
-    // from there use djikstars algorithm to find the shortest path to the node
+        let line = lines.next().unwrap();
+        let move_a: Move = line.parse().unwrap();
+        let move_b: Move = lines.next().unwrap().parse().unwrap();
+        let prize: Point = lines.next().unwrap().parse().unwrap();
+
+        machines.push(Machine{a:move_a, b:move_b, prize});
+
+        if lines.next().is_none() {
+            break;
+        }
+
+    }
+
+    dbg!(machines.len());
+    dbg!(&machines.last().unwrap());
+
+    let cost: u32 = machines.iter().filter_map(Machine::cost).sum();
+    println!("{}", cost);
 }
 
 #[cfg(test)]
@@ -172,7 +209,6 @@ mod test {
         };
         assert_eq!(machine.cost(), Some(4));
     }
-
 
     #[test]
     fn test_first_example() {
