@@ -56,6 +56,9 @@ class Grid(Generic[T]):
     def __getitem__(self, key: tuple[int, int]) -> T:
         return self.rows[key[0]][key[1]]
 
+    def __setitem__(self, key: tuple[int,int], value: T) -> None:
+        self.rows[key[0]][key[1]] = value
+
     def __iter__(self) -> Iterator[T]:
         return GridIterator[T](self)
 
@@ -93,11 +96,29 @@ def part_one(input: str):
         count = sum([1 for adj in adjacents if map[adj] == "@"])
         if count < 4:
             total += 1
-
     print(total)
 
 
-def part_two(input: str): ...
+def part_two(input: str):
+    rows = [list(line) for line in input.splitlines()]
+    map = Grid[str](rows)
+    total = 0
+
+    while True:
+        changed = False
+        for i, x in enumerate(map):
+            if x == ".":
+                continue
+            pos = index_to_coordinate(i, map.height, map.width)
+            adjacents = map.adjacents(pos)
+            count = sum([1 for adj in adjacents if map[adj] == "@"])
+            if count < 4:
+                total += 1
+                map[pos] = "."
+                changed = True
+        if not changed:
+            break
+    print(total)
 
 
 if __name__ == "__main__":
