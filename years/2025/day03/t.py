@@ -1,3 +1,4 @@
+from io import StringIO
 import sys
 
 
@@ -36,8 +37,31 @@ def part_one(input: str):
             jolts.append(max_joltage * 10 + submax_joltage)
     print(sum(jolts))
 
+def find_joltage(bank: str, leave_at_least: int) -> tuple[int, str]:
+    # find max joltage in bank while leaving `remaining` batteries
+    max_joltage = -1
+    max_joltage_i = 0
+    # can only look at the first n joltages to ensure
+    n = len(bank) - leave_at_least
+    for i, joltage in enumerate(bank[:n]):
+        if int(joltage) > max_joltage:
+            max_joltage = int(joltage)
+            max_joltage_i = i
+    return  max_joltage, bank[max_joltage_i+1:]
 
-def part_two(input: str): ...
+def part_two(input: str):
+    banks = input.splitlines()
+    jolts = []
+    for bank in banks:
+        b = StringIO()
+        remaining_bank = bank
+        for i in reversed(range(12)):
+            joltage, remaining_bank = find_joltage(remaining_bank, i)
+            b.write(str(joltage))
+        jolts.append(int(b.getvalue()))
+    print(sum(jolts))
+
+
 
 
 if __name__ == "__main__":
