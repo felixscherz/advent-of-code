@@ -3,6 +3,7 @@ import os
 import re
 import sys
 from pathlib import Path
+import textwrap
 import webbrowser
 
 import requests
@@ -71,6 +72,31 @@ def submit(year: int, day: int, part: int, answer: int, session: str | None = No
         print(response.text)
         return 1
 
+def init():
+    content = textwrap.dedent("""
+    from __future__ import annotations
+    import sys
+
+    def part_one(input: str):
+        ...
+
+    def part_two(input: str):
+        ...
+
+    def main():
+        input = sys.stdin.read()
+        match sys.argv[1]:
+            case "1":
+                part_one(input)
+            case "2":
+                part_two(input)
+        sys.exit(0)
+
+    if __name__ == "__main__":
+        main()
+    """)
+    print(content)
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
@@ -79,6 +105,7 @@ def parse_args() -> argparse.Namespace:
     submit_parser = subparsers.add_parser("submit")
     submit_parser.add_argument("--part", type=int, required=True)
     subparsers.add_parser("open")
+    subparsers.add_parser("init")
 
     return parser.parse_args()
 
@@ -96,5 +123,7 @@ def main():
         case "open":
             year, day = determine_year_day()
             webbrowser.open(f"https://adventofcode.com/{year}/day/{day}")
+        case "init":
+            init()
         case _:
             ...
